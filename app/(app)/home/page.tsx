@@ -29,7 +29,7 @@ export default function HomePage() {
               <span className="material-symbols-outlined">monitoring</span>
               <span className="text-sm font-semibold">Reports</span>
             </a>
-            <a className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors mt-auto" href="#">
+            <a className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors mt-auto" href="/settings">
               <span className="material-symbols-outlined">settings</span>
               <span className="text-sm font-semibold">Settings</span>
             </a>

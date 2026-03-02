@@ -81,7 +81,7 @@ export default function ReportsPage() {
             </a>
             <a
               className="mt-auto flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 transition-colors hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800"
-              href="#"
+              href="/settings"
             >
               <span className="material-symbols-outlined">settings</span>
               <span className="text-sm font-semibold">Settings</span>
