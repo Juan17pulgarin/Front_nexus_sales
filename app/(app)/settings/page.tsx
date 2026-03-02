@@ -110,7 +110,7 @@ export default function SettingsPage() {
               <div>
                 <h3 className="mb-4 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Organization</h3>
                 <nav className="flex flex-col gap-1">
-                  <a className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 transition-colors hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800" href="#">
+                  <a className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 transition-colors hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800" href="/settings/team-management">
                     <span className="material-symbols-outlined">groups</span>
                     <span className="text-sm">Team Management</span>
                   </a>
