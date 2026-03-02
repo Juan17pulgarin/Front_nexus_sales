@@ -1,6 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  createMockToken,
+  MOCK_USERS,
+  setAuthCookies,
+  verifyPasswordHash,
+} from "@/lib/auth/mock-client";
+import { LOGIN_REDIRECT_PATH } from "@/lib/auth/shared";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -36,18 +43,35 @@ export default function LoginPage() {
     },
   });
 
-  const onSubmit = (values: LoginFormValues) => {
+  const onSubmit = async (values: LoginFormValues) => {
     setLoginSuccess(false);
 
-    if (values.email === HARD_CODED_EMAIL && values.password === HARD_CODED_PASSWORD) {
-      setLoginSuccess(true);
-      router.push("/home");
+    const normalizedEmail = values.email.trim().toLowerCase();
+    const foundUser = MOCK_USERS.find((user) => user.email === normalizedEmail);
+    const emailExists = Boolean(foundUser);
+
+    const validPassword =
+      foundUser ? await verifyPasswordHash(values.password, foundUser.passwordHash) : false;
+
+    if (!emailExists || !validPassword) {
+      setError("root", {
+        message: "Usuario o contraseña inválidos",
+      });
+
       return;
     }
 
-    setError("root", {
-      message: "Credenciales invalidas. Usa los valores de demo.",
-    });
+    const sessionDurationMs = values.remember
+      ? 1000 * 60 * 60 * 24 * 7
+      : 1000 * 60 * 60 * 12;
+
+    const expiresAt = Date.now() + sessionDurationMs;
+    const token = createMockToken(normalizedEmail, expiresAt);
+
+    setAuthCookies(token, expiresAt);
+
+    setLoginSuccess(true);
+    router.push(LOGIN_REDIRECT_PATH);
   };
 
   return (
@@ -205,7 +229,7 @@ export default function LoginPage() {
             ) : null}
             {loginSuccess ? (
               <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-600">
-                Login correcto. Credenciales de demo validas.
+                Login correcto. Redirigiendo...
               </p>
             ) : null}
             <button
