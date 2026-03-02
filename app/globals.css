@@ -147,3 +147,9 @@
   background-size: cover;
   background-position: center;
 }
+
+.active-nav {
+  background-color: rgba(19, 127, 236, 0.1);
+  color: #137fec;
+  border-left: 4px solid #137fec;
+}

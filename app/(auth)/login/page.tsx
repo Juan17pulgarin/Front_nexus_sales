@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -17,6 +18,7 @@ const HARD_CODED_EMAIL = "demo@nexussales.com";
 const HARD_CODED_PASSWORD = "password123";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
 
@@ -39,6 +41,7 @@ export default function LoginPage() {
 
     if (values.email === HARD_CODED_EMAIL && values.password === HARD_CODED_PASSWORD) {
       setLoginSuccess(true);
+      router.push("/home");
       return;
     }
 
@@ -212,6 +215,9 @@ export default function LoginPage() {
             >
               Log In
             </button>
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              Demo: {HARD_CODED_EMAIL} / {HARD_CODED_PASSWORD}
+            </p>
           </form>
           <p className="text-center font-medium text-slate-500 dark:text-slate-400">
             Don&apos;t have an account?{" "}

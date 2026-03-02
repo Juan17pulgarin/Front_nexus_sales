@@ -98,7 +98,7 @@ export default function RegisterPage() {
           </div>
         </div>
         <div className="relative z-10 flex items-center gap-4 text-sm font-medium text-white/80">
-          <span>© 2024 Nexus Sales Inc.</span>
+          <span>© 2026 Nexus Sales Inc.</span>
           <span className="h-1 w-1 rounded-full bg-white/40" />
           <a className="transition-colors hover:text-white" href="#">
             Privacy Policy
