@@ -33,7 +33,7 @@ export default function SalesPage() {
             </a>
             <a
               className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 transition-colors hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800"
-              href="#"
+              href="/reports"
             >
               <span className="material-symbols-outlined">monitoring</span>
               <span className="text-sm font-semibold">Reports</span>
