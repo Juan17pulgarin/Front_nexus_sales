@@ -17,7 +17,9 @@ export default function SecuritySettingsPage() {
         <aside className="h-full w-64 shrink-0 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 flex">
           <div className="flex items-center gap-3 p-6">
             <div className="flex items-center justify-center rounded-lg bg-primary p-1.5">
-              <span className="material-symbols-outlined text-2xl text-white">rocket_launch</span>
+              <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 6H42L36 24L42 42H6L12 24L6 6Z" fill="currentColor" />
+              </svg>
             </div>
             <div>
               <h1 className="text-lg font-bold leading-none tracking-tight">Nexus Sales</h1>
@@ -126,11 +128,11 @@ export default function SecuritySettingsPage() {
                     <span className="material-symbols-outlined">groups</span>
                     <span className="text-sm">Team Management</span>
                   </a>
-                  <a className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 transition-colors hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800" href="#">
+                  <a className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 transition-colors hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800" href="/settings/integrations">
                     <span className="material-symbols-outlined">integration_instructions</span>
                     <span className="text-sm">Integrations</span>
                   </a>
-                  <a className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 transition-colors hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800" href="#">
+                  <a className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 transition-colors hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800" href="/settings/company-branding">
                     <span className="material-symbols-outlined">corporate_fare</span>
                     <span className="text-sm">Company Branding</span>
                   </a>

@@ -5,7 +5,9 @@ export default function HomePage() {
         <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full shrink-0">
           <div className="p-6 flex items-center gap-3">
             <div className="bg-primary rounded-lg p-1.5 flex items-center justify-center">
-              <span className="material-symbols-outlined text-white text-2xl">rocket_launch</span>
+              <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 6H42L36 24L42 42H6L12 24L6 6Z" fill="currentColor" />
+              </svg>
             </div>
             <div>
               <h1 className="text-lg font-bold leading-none tracking-tight">Nexus Sales</h1>
