@@ -13,11 +13,11 @@ export default function HomePage() {
             </div>
           </div>
           <nav className="flex-1 px-3 space-y-1">
-            <a className="flex items-center gap-3 px-3 py-2.5 rounded-lg active-nav transition-colors" href="#">
+            <a className="flex items-center gap-3 px-3 py-2.5 rounded-lg active-nav transition-colors" href="/home">
               <span className="material-symbols-outlined">dashboard</span>
               <span className="text-sm font-semibold">Dashboard</span>
             </a>
-            <a className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+            <a className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="/customers">
               <span className="material-symbols-outlined">group</span>
               <span className="text-sm font-semibold">Customers</span>
             </a>
