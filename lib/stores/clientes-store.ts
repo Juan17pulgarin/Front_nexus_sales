@@ -7,13 +7,10 @@ import {
   type LocalCustomerRecord,
 } from "@/lib/local-crm-db";
 
-export type ClienteRecord = LocalCustomerRecord;
-
 type CreateClientePayload = {
   FirstName: string;
   LastName: string;
   EmailAddress: string;
-  Phone: string;
   City: string;
   State: string;
 };
@@ -53,8 +50,20 @@ export const useClientesStore = create<ClientesStore>((set) => ({
   errorMessage: null,
 
   fetchClientes: async () => {
-    set({ isLoadingClientes: true });
-    set({ clientes: getCustomers(), isLoadingClientes: false, clientesError: null });
+    set({ isLoadingClientes: true, clientesError: null });
+
+    try {
+      set({
+        clientes: getCustomers(),
+        isLoadingClientes: false,
+        clientesError: null,
+      });
+    } catch {
+      set({
+        isLoadingClientes: false,
+        clientesError: "No se pudieron cargar los clientes.",
+      });
+    }
   },
 
   createCliente: async (payload) => {
@@ -62,16 +71,18 @@ export const useClientesStore = create<ClientesStore>((set) => ({
 
     try {
       const customer = createCustomer(payload);
+
       set((state) => ({
         clientes: [...state.clientes, customer],
       }));
+
       set({
         isSubmitting: false,
         successMessage: "Cliente registrado correctamente",
         errorMessage: null,
       });
       return customer;
-    } catch {
+    } catch (error) {
       set({
         isSubmitting: false,
         successMessage: null,
@@ -85,9 +96,9 @@ export const useClientesStore = create<ClientesStore>((set) => ({
     set({ isSubmitting: true, successMessage: null, errorMessage: null });
 
     try {
-      const updatedCustomer = updateCustomer(customerId, payload);
+      const updated = updateCustomer(customerId, payload);
 
-      if (!updatedCustomer) {
+      if (!updated) {
         set({
           isSubmitting: false,
           successMessage: null,
@@ -98,7 +109,7 @@ export const useClientesStore = create<ClientesStore>((set) => ({
 
       set((state) => ({
         clientes: state.clientes.map((customer) =>
-          customer.CustomerID === customerId ? updatedCustomer : customer
+          customer.CustomerID === customerId ? updated : customer
         ),
       }));
 
@@ -117,6 +128,40 @@ export const useClientesStore = create<ClientesStore>((set) => ({
       return false;
     }
   },
+
+  deleteCliente: async (customerId) => {
+    set({ isSubmitting: true, successMessage: null, errorMessage: null });
+
+    try {
+      deleteCustomer(customerId);
+      set((state) => ({
+        clientes: state.clientes.filter((customer) => customer.CustomerID !== customerId),
+      }));
+
+      set({
+        isSubmitting: false,
+        successMessage: "Cliente eliminado correctamente",
+        errorMessage: null,
+      });
+      return true;
+    } catch {
+      set({
+        isSubmitting: false,
+        successMessage: null,
+        errorMessage: "No se pudo eliminar el cliente.",
+      });
+      return false;
+    }
+  },
+
+  setSearchFilters: (filters) => {
+    set({ searchFilters: filters });
+  },
+
+  clearSearchFilters: () => {
+    set({ searchFilters: { city: "", state: "" } });
+  },
+
   clearMessages: () => {
     set({ successMessage: null, errorMessage: null });
   },

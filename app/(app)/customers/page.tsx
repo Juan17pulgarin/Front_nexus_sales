@@ -1,273 +1,352 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
+import { useClientesStore } from '@/lib/stores/clientes-store';
 
-interface Cliente {
-  CustomerID: number;
-  Title?: string;
+type EditFormState = {
   FirstName: string;
-  MiddleName?: string;
   LastName: string;
-  Suffix?: string;
-  CompanyName: string;
-  SalesPerson: string;
   EmailAddress: string;
-  Phone: string;
+  City: string;
+  State: string;
+};
+
+function normalize(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function matchesFilter(value: string | null | undefined, filter: string) {
+  if (!filter.trim()) {
+    return true;
+  }
+
+  return normalize(value ?? '').includes(normalize(filter));
 }
 
 export default function CustomersPage() {
-  const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isFullList, setIsFullList] = useState(false);
+  const clientes = useClientesStore((state) => state.clientes);
+  const isLoadingClientes = useClientesStore((state) => state.isLoadingClientes);
+  const clientesError = useClientesStore((state) => state.clientesError);
+  const searchFilters = useClientesStore((state) => state.searchFilters);
+  const isSubmitting = useClientesStore((state) => state.isSubmitting);
+  const fetchClientes = useClientesStore((state) => state.fetchClientes);
+  const setSearchFilters = useClientesStore((state) => state.setSearchFilters);
+  const clearSearchFilters = useClientesStore((state) => state.clearSearchFilters);
+  const updateCliente = useClientesStore((state) => state.updateCliente);
+  const deleteCliente = useClientesStore((state) => state.deleteCliente);
 
-  // Estados para Modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [currentId, setCurrentId] = useState<number | null>(null);
-
-  const [formData, setFormData] = useState({
-    NameStyle: 0,
-    Title: "Mr.",
-    FirstName: "",
-    MiddleName: "",
-    LastName: "",
-    Suffix: "",
-    CompanyName: "",
-    SalesPerson: "adventure-works\\alex0",
-    EmailAddress: "",
-    Phone: "",
-    PasswordHash: "L9a8s7d6...", 
-    PasswordSalt: "L9a8s7d6"
+  const [cityInput, setCityInput] = useState(searchFilters.city);
+  const [stateInput, setStateInput] = useState(searchFilters.state);
+  const [editingCustomerId, setEditingCustomerId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<EditFormState>({
+    FirstName: '',
+    LastName: '',
+    EmailAddress: '',
+    City: '',
+    State: '',
   });
 
-  const fetchClientes = async (cargarTodo = false) => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem("auth_token");
-      const url = cargarTodo 
-        ? "http://127.0.0.1:8000/api/clientes?todo=1" 
-        : "http://127.0.0.1:8000/api/clientes";
+  useEffect(() => {
+    void fetchClientes();
+  }, [fetchClientes]);
 
-      const response = await fetch(url, {
-        headers: { "Authorization": `Bearer ${token}` },
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setSearchFilters({
+        city: cityInput,
+        state: stateInput,
       });
+    }, 350);
 
-      if (response.ok) {
-        const data = await response.json();
-        setClientes(data);
-        if (cargarTodo) setIsFullList(true);
-      }
-    } catch (error) {
-      console.error("Error cargando clientes:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    return () => window.clearTimeout(timeoutId);
+  }, [cityInput, stateInput, setSearchFilters]);
 
-  useEffect(() => { fetchClientes(); }, []);
-
-  const handleOpenCreate = () => {
-    setIsEditing(false);
-    setCurrentId(null);
-    setFormData({ ...formData, FirstName: "", LastName: "", CompanyName: "", EmailAddress: "", Phone: "", Title: "Mr." });
-    setIsModalOpen(true);
-  };
-
-  const handleOpenEdit = (c: Cliente) => {
-    setIsEditing(true);
-    setCurrentId(c.CustomerID);
-    setFormData({
-      ...formData,
-      Title: c.Title || "Mr.",
-      FirstName: c.FirstName,
-      LastName: c.LastName,
-      CompanyName: c.CompanyName,
-      EmailAddress: c.EmailAddress,
-      Phone: c.Phone || ""
+  const filteredClientes = useMemo(() => {
+    return clientes.filter((customer) => {
+      return (
+        matchesFilter(customer.city, searchFilters.city) &&
+        matchesFilter(customer.state, searchFilters.state)
+      );
     });
-    setIsModalOpen(true);
+  }, [clientes, searchFilters.city, searchFilters.state]);
+
+  const hasFilters = searchFilters.city.trim().length > 0 || searchFilters.state.trim().length > 0;
+
+  const handleClearFilters = () => {
+    setCityInput('');
+    setStateInput('');
+    clearSearchFilters();
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const url = isEditing 
-      ? `http://127.0.0.1:8000/api/clientes/${currentId}` 
-      : "http://127.0.0.1:8000/api/clientes";
+  const openEdit = (customer: (typeof clientes)[number]) => {
+    setEditingCustomerId(customer.CustomerID);
+    setEditForm({
+      FirstName: customer.FirstName,
+      LastName: customer.LastName,
+      EmailAddress: customer.EmailAddress,
+      City: customer.city,
+      State: customer.state,
+    });
+  };
 
-    try {
-      const token = localStorage.getItem("auth_token");
-      const response = await fetch(url, {
-        method: "POST", // Mantenemos POST por tu ruta de Laravel
-        headers: { 
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json" 
-        },
-        body: JSON.stringify(formData)
-      });
+  const closeEdit = () => {
+    setEditingCustomerId(null);
+  };
 
-      if (response.ok) {
-        setIsModalOpen(false);
-        fetchClientes(isFullList);
-      }
-    } catch (error) {
-      alert("Error en la operación");
+  const handleEditSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!editingCustomerId) {
+      return;
+    }
+
+    const ok = await updateCliente(editingCustomerId, editForm);
+    if (ok) {
+      closeEdit();
     }
   };
 
-  // NUEVA FUNCIÓN: Eliminar
-  const handleDelete = async (id: number) => {
-    if (!confirm("¿Estás seguro de eliminar este cliente?")) return;
-
-    try {
-      const token = localStorage.getItem("auth_token");
-      const response = await fetch(`http://127.0.0.1:8000/api/clientes/${id}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        fetchClientes(isFullList); // Refrescar lista
-      } else {
-        const err = await response.json();
-        alert(err.details || "Error al eliminar");
-      }
-    } catch (error) {
-      alert("Error de conexión");
+  const handleDelete = async (customerId: number) => {
+    const confirmed = window.confirm('¿Seguro que quieres eliminar este cliente?');
+    if (!confirmed) {
+      return;
     }
-  };
 
-  const clientesFiltrados = clientes.filter(c => 
-    `${c.FirstName} ${c.LastName} ${c.CompanyName}`.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    await deleteCliente(customerId);
+  };
 
   return (
-    <div className="bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 min-h-screen">
-      <div className="flex h-screen overflow-hidden">
-        <aside className="w-64 bg-white dark:bg-slate-900 border-r flex flex-col h-full shrink-0">
-          <div className="p-6 flex items-center gap-3">
-            <div className="bg-blue-600 rounded-lg p-1.5 text-white">
-              <span className="material-symbols-outlined">rocket_launch</span>
-            </div>
-            <h1 className="text-lg font-bold">Nexus Sales</h1>
-          </div>
-          <nav className="flex-1 px-3 space-y-1 text-sm font-semibold">
-            <a className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-100" href="/home">
-               Dashboard
-            </a>
-            <a className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-50 text-blue-600" href="/customers">
-               Customers
-            </a>
-          </nav>
-        </aside>
+    <div className="space-y-8 p-8">
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Clientes</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Busca y filtra la cartera por ciudad y estado.
+          </p>
+        </div>
 
-        <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-          <header className="h-16 bg-white dark:bg-slate-900 border-b flex items-center justify-between px-8 sticky top-0 z-10">
-            <div className="relative w-full max-w-md">
-              <input 
-                className="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-lg pl-10 pr-4 py-2 text-sm outline-none" 
-                placeholder="Search..." 
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <button 
-              onClick={handleOpenCreate}
-              className="bg-blue-600 text-white text-sm font-bold px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
-            >
-              Add Customer
-            </button>
-          </header>
-
-          <div className="p-8 max-w-7xl mx-auto w-full">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-              <div className="p-4 border-b flex justify-between items-center bg-slate-50/50">
-                <h3 className="font-bold">Customer Directory</h3>
-                {!isFullList && (
-                  <button onClick={() => fetchClientes(true)} className="text-blue-600 text-xs font-bold">
-                    Load All Data
-                  </button>
-                )}
-              </div>
-              <table className="w-full text-left">
-                <thead className="text-xs font-bold text-slate-500 uppercase border-b bg-slate-50">
-                  <tr>
-                    <th className="px-6 py-4">Full Name</th>
-                    <th className="px-6 py-4">Company</th>
-                    <th className="px-6 py-4">Phone</th>
-                    <th className="px-6 py-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {loading ? (
-                    <tr><td colSpan={4} className="p-20 text-center text-slate-400">Loading...</td></tr>
-                  ) : (
-                    clientesFiltrados.map((c) => (
-                      <tr key={c.CustomerID} className="hover:bg-slate-50 transition-colors group">
-                        <td className="px-6 py-4 text-sm">
-                          <div className="font-bold">{c.Title} {c.FirstName} {c.LastName}</div>
-                          <div className="text-xs text-slate-400">{c.EmailAddress}</div>
-                        </td>
-                        <td className="px-6 py-4 text-sm">{c.CompanyName}</td>
-                        <td className="px-6 py-4 text-sm text-slate-500">{c.Phone || 'N/A'}</td>
-                        <td className="px-6 py-4 text-right flex justify-end gap-2">
-                          <button onClick={() => handleOpenEdit(c)} className="p-2 text-slate-300 hover:text-blue-600 transition-colors">
-                            <span className="material-symbols-outlined">edit</span>
-                          </button>
-                          {/* BOTÓN ELIMINAR */}
-                          <button onClick={() => handleDelete(c.CustomerID)} className="p-2 text-slate-300 hover:text-red-600 transition-colors">
-                            <span className="material-symbols-outlined">delete</span>
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </main>
+        <Link
+          href="/customers/new"
+          className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+        >
+          + Nuevo cliente
+        </Link>
       </div>
 
-      {/* MODAL (Se mantiene igual que antes) */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-3xl p-8 shadow-2xl">
-            <h2 className="text-2xl font-black mb-6">{isEditing ? "Edit Customer" : "New Customer"}</h2>
-            <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
-              <div className="col-span-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">Title</label>
-                <input className="w-full mt-1 p-2 bg-slate-50 border rounded-lg" value={formData.Title} onChange={e => setFormData({...formData, Title: e.target.value})} />
+      <div className="grid grid-cols-1 gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:grid-cols-3">
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300" htmlFor="city-search">
+            Ciudad
+          </label>
+          <input
+            id="city-search"
+            value={cityInput}
+            onChange={(event) => setCityInput(event.target.value)}
+            placeholder="Ej. Medellin"
+            className="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300" htmlFor="state-search">
+            Estado
+          </label>
+          <input
+            id="state-search"
+            value={stateInput}
+            onChange={(event) => setStateInput(event.target.value)}
+            placeholder="Ej. Antioquia"
+            className="block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+          />
+        </div>
+
+        <div className="flex items-end gap-3">
+          <button
+            type="button"
+            onClick={handleClearFilters}
+            className="inline-flex h-12 items-center justify-center rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+          >
+            Limpiar filtros
+          </button>
+
+          <div className="rounded-xl bg-slate-100 px-4 py-3 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+            {filteredClientes.length} resultados
+          </div>
+        </div>
+      </div>
+
+      {clientesError ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
+          {clientesError}
+        </div>
+      ) : null}
+
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
+            <thead className="bg-slate-50 dark:bg-slate-800/40">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Cliente
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Email
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Ciudad
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Estado
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Acciones
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {isLoadingClientes ? (
+                <tr>
+                  <td className="px-4 py-6 text-sm text-slate-500" colSpan={5}>
+                    Cargando clientes...
+                  </td>
+                </tr>
+              ) : filteredClientes.length === 0 ? (
+                <tr>
+                  <td className="px-4 py-6 text-sm text-slate-500" colSpan={5}>
+                    {hasFilters ? 'No hay clientes que coincidan con ese filtro.' : 'No hay clientes para mostrar.'}
+                  </td>
+                </tr>
+              ) : (
+                filteredClientes.map((customer) => (
+                  <tr key={customer.CustomerID} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30">
+                    <td className="px-4 py-4 text-sm font-medium text-slate-900 dark:text-slate-100">
+                      {customer.FirstName} {customer.LastName}
+                    </td>
+                    <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                      {customer.EmailAddress}
+                    </td>
+                    <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                      {customer.city ?? '-'}
+                    </td>
+                    <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                      {customer.state ?? '-'}
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => openEdit(customer)}
+                          className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(customer.CustomerID)}
+                          className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 dark:border-red-900/40 dark:text-red-300 dark:hover:bg-red-950/40"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {editingCustomerId ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-bold">Editar cliente</h3>
+              <button
+                type="button"
+                onClick={closeEdit}
+                className="rounded-lg px-2 py-1 text-sm text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                Cerrar
+              </button>
+            </div>
+
+            <form className="space-y-4" onSubmit={handleEditSubmit}>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <input
+                  value={editForm.FirstName}
+                  onChange={(event) =>
+                    setEditForm((prev) => ({ ...prev, FirstName: event.target.value }))
+                  }
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800"
+                  placeholder="FirstName"
+                  required
+                />
+                <input
+                  value={editForm.LastName}
+                  onChange={(event) =>
+                    setEditForm((prev) => ({ ...prev, LastName: event.target.value }))
+                  }
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800"
+                  placeholder="LastName"
+                  required
+                />
+                <input
+                  value={editForm.EmailAddress}
+                  onChange={(event) =>
+                    setEditForm((prev) => ({ ...prev, EmailAddress: event.target.value }))
+                  }
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800"
+                  placeholder="EmailAddress"
+                  type="email"
+                  required
+                />
+                <input
+                  value={editForm.City}
+                  onChange={(event) =>
+                    setEditForm((prev) => ({ ...prev, City: event.target.value }))
+                  }
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800"
+                  placeholder="City"
+                  required
+                />
               </div>
-              <div className="col-span-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">Phone</label>
-                <input className="w-full mt-1 p-2 bg-slate-50 border rounded-lg" value={formData.Phone} onChange={e => setFormData({...formData, Phone: e.target.value})} />
-              </div>
-              <div className="col-span-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">First Name</label>
-                <input required className="w-full mt-1 p-2 bg-slate-50 border rounded-lg" value={formData.FirstName} onChange={e => setFormData({...formData, FirstName: e.target.value})} />
-              </div>
-              <div className="col-span-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">Last Name</label>
-                <input required className="w-full mt-1 p-2 bg-slate-50 border rounded-lg" value={formData.LastName} onChange={e => setFormData({...formData, LastName: e.target.value})} />
-              </div>
-              <div className="col-span-2">
-                <label className="text-xs font-bold text-slate-500 uppercase">Company Name</label>
-                <input required className="w-full mt-1 p-2 bg-slate-50 border rounded-lg" value={formData.CompanyName} onChange={e => setFormData({...formData, CompanyName: e.target.value})} />
-              </div>
-              <div className="col-span-2">
-                <label className="text-xs font-bold text-slate-500 uppercase">Email Address</label>
-                <input required type="email" className="w-full mt-1 p-2 bg-slate-50 border rounded-lg" value={formData.EmailAddress} onChange={e => setFormData({...formData, EmailAddress: e.target.value})} />
-              </div>
-              <div className="col-span-2 flex gap-3 pt-6">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 p-3 bg-slate-100 rounded-xl font-bold">Cancel</button>
-                <button type="submit" className="flex-1 p-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-lg">
-                   {isEditing ? "Update" : "Save"}
+
+              <input
+                value={editForm.State}
+                onChange={(event) =>
+                  setEditForm((prev) => ({ ...prev, State: event.target.value }))
+                }
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800"
+                placeholder="State"
+                required
+              />
+
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={closeEdit}
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                >
+                  Guardar cambios
                 </button>
               </div>
             </form>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
