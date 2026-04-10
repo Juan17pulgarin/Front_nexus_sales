@@ -117,40 +117,6 @@ export const useClientesStore = create<ClientesStore>((set) => ({
       return false;
     }
   },
-
-  deleteCliente: async (customerId) => {
-    set({ isSubmitting: true, successMessage: null, errorMessage: null });
-
-    try {
-      deleteCustomer(customerId);
-      set((state) => ({
-        clientes: state.clientes.filter((customer) => customer.CustomerID !== customerId),
-      }));
-
-      set({
-        isSubmitting: false,
-        successMessage: "Cliente eliminado correctamente",
-        errorMessage: null,
-      });
-      return true;
-    } catch {
-      set({
-        isSubmitting: false,
-        successMessage: null,
-        errorMessage: "No se pudo eliminar el cliente.",
-      });
-      return false;
-    }
-  },
-
-  setSearchFilters: (filters) => {
-    set({ searchFilters: filters });
-  },
-
-  clearSearchFilters: () => {
-    set({ searchFilters: { city: "", state: "" } });
-  },
-
   clearMessages: () => {
     set({ successMessage: null, errorMessage: null });
   },

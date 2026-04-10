@@ -1,32 +1,19 @@
+import type { AxiosRequestConfig, Method } from "axios";
+import { apiClient } from "@/lib/axios-client";
+
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
-type HttpOptions = Omit<RequestInit, "method"> & {
+type HttpOptions = Omit<AxiosRequestConfig, "url" | "baseURL" | "method"> & {
   method?: HttpMethod;
 };
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
-const DEFAULT_HEADERS: HeadersInit = {
-  "Content-Type": "application/json",
-};
-
 export async function http<T>(path: string, options: HttpOptions = {}): Promise<T> {
-  const response = await fetch(`${BASE_URL}${path}`, {
+  const method = (options.method ?? "GET") as Method;
+  const response = await apiClient.request<T>({
     ...options,
-    headers: {
-      ...DEFAULT_HEADERS,
-      ...options.headers,
-    },
+    url: path,
+    method,
   });
 
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || `HTTP ${response.status}`);
-  }
-
-  const contentType = response.headers.get("content-type") ?? "";
-  if (contentType.includes("application/json")) {
-    return (await response.json()) as T;
-  }
-
-  return (await response.text()) as T;
+  return response.data;
 }
