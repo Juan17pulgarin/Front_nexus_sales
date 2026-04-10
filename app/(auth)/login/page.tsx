@@ -1,6 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { setAuthCookies } from "@/lib/auth/mock-client"; // Mantenemos esta para guardar la sesión
+import { LOGIN_REDIRECT_PATH } from "@/lib/auth/shared";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -14,6 +16,10 @@ const loginSchema = z.object({
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
+
+// Actualizamos los datos de la demo visual para que coincidan con tu SQL
+const HARD_CODED_EMAIL = "admin@nexus.com";
+const HARD_CODED_PASSWORD = "password123";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -42,15 +48,53 @@ export default function LoginPage() {
 
     const result = await login(values.email, values.password, Boolean(values.remember));
 
-    if (result.success) {
-      setLoginSuccess(true);
-      router.push("/home");
-      return;
-    }
+    try {
+      // LLAMADA REAL AL BACKEND
+      const response = await fetch("http://127.0.0.1:8000/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+        }),
+      });
 
-    setError("root", {
-      message: result.message ?? "Credenciales invalidas.",
-    });
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Si el backend responde con error (401), mostramos el mensaje del servidor
+        setError("root", {
+          message: data.message || "Usuario o contraseña inválidos",
+        });
+        return;
+      }
+
+      // Si llegamos aquí, el login fue exitoso
+      const sessionDurationMs = values.remember
+        ? 1000 * 60 * 60 * 24 * 7 // 7 días
+        : 1000 * 60 * 60 * 12;    // 12 horas
+
+      const expiresAt = Date.now() + sessionDurationMs;
+      
+      // Guardamos el TOKEN real que generó Laravel
+      setAuthCookies(data.token, expiresAt);
+
+      setLoginSuccess(true);
+      
+      // Redirigimos al dashboard
+      setTimeout(() => {
+        router.push(LOGIN_REDIRECT_PATH);
+      }, 1000);
+
+    } catch (error) {
+      // Si el backend está apagado o hay error de red
+      setError("root", {
+        message: "Error de conexión: Asegúrate de que el Backend esté encendido.",
+      });
+    }
   };
 
   return (
@@ -201,7 +245,7 @@ export default function LoginPage() {
             ) : null}
             {loginSuccess ? (
               <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-600">
-                Login correcto.
+                Login correcto. Redirigiendo...
               </p>
             ) : null}
             <button
@@ -213,26 +257,11 @@ export default function LoginPage() {
             </button>
           </form>
           <p className="text-center font-medium text-slate-500 dark:text-slate-400">
-            Don&apos;t have an account?{" "}
-            <a className="text-primary font-bold hover:underline" href="/register">
+            Don't have an account?{" "}
+            <a className="font-bold text-primary hover:underline" href="/register">
               Sign Up
             </a>
           </p>
-          <div className="pt-12 text-center">
-            <div className="flex justify-center gap-4 text-xs font-medium text-slate-400">
-              <a className="hover:text-primary transition-colors" href="#">
-                Privacy Policy
-              </a>
-              <span className="text-slate-300 dark:text-slate-800">•</span>
-              <a className="hover:text-primary transition-colors" href="#">
-                Terms of Service
-              </a>
-              <span className="text-slate-300 dark:text-slate-800">•</span>
-              <a className="hover:text-primary transition-colors" href="#">
-                Help Center
-              </a>
-            </div>
-          </div>
         </div>
       </div>
     </div>
