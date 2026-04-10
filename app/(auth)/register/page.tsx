@@ -10,8 +10,8 @@ const registerSchema = z.object({
   companyName: z.string().min(2, "Ingresa el nombre de tu empresa."),
   email: z.string().email("Ingresa un email valido."),
   password: z.string().min(8, "La contrasena debe tener al menos 8 caracteres."),
-  terms: z.literal(true, {
-    errorMap: () => ({ message: "Debes aceptar los terminos." }),
+  terms: z.boolean().refine((value) => value, {
+    message: "Debes aceptar los terminos.",
   }),
 });
 
