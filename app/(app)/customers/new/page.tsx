@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useClientesStore } from "@/lib/stores/clientes-store";
+import AddressesSection from "./addresses-section";
 
 const createClienteSchema = z.object({
   FirstName: z.string().trim().min(1, "FirstName es obligatorio."),
@@ -52,7 +53,7 @@ export default function NewCustomerPage() {
 
   return (
     <div className="bg-background-light font-display dark:bg-background-dark min-h-screen p-6 text-slate-900 sm:p-10 dark:text-slate-100">
-      <div className="mx-auto w-full max-w-3xl space-y-8">
+      <div className="mx-auto w-full max-w-3xl space-y-8 relative">
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-primary text-xs font-semibold tracking-[0.14em] uppercase">
@@ -156,6 +157,7 @@ export default function NewCustomerPage() {
             {isSubmitting || isSubmittingStore ? "Guardando..." : "Guardar cliente"}
           </button>
         </form>
+        <AddressesSection customerId={1} />
       </div>
     </div>
   );
