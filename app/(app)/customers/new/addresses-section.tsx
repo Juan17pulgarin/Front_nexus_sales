@@ -14,7 +14,7 @@ const addressSchema = z.object({
 });
 
 type AddressFormValues = z.infer<typeof addressSchema>;
-type Props = { customerId: number };
+type Props = { customerId: number | null };
 
 export default function AddressesSection({ customerId }: Props) {
   const {
@@ -31,6 +31,10 @@ export default function AddressesSection({ customerId }: Props) {
   });
 
   useEffect(() => {
+    if (!customerId) {
+      return;
+    }
+
     fetchAddresses(customerId);
   }, [customerId, fetchAddresses]);
 
@@ -44,6 +48,10 @@ export default function AddressesSection({ customerId }: Props) {
   }, [modalOpen]);
 
   const openCreate = () => {
+    if (!customerId) {
+      return;
+    }
+
     setEditing(null);
     reset({ line: "", city: "", state: "", country: "" });
     clearError();
@@ -51,6 +59,10 @@ export default function AddressesSection({ customerId }: Props) {
   };
 
   const openEdit = (address: Address) => {
+    if (!customerId) {
+      return;
+    }
+
     setEditing(address);
     reset({ line: address.line, city: address.city, state: address.state, country: address.country });
     clearError();
@@ -60,11 +72,26 @@ export default function AddressesSection({ customerId }: Props) {
   const closeModal = () => { setModalOpen(false); setEditing(null); };
 
   const onSubmit = async (values: AddressFormValues) => {
+    if (!customerId) {
+      return;
+    }
+
     const ok = editing
       ? await updateAddress(customerId, editing.id, values)
       : await createAddress(customerId, values);
     if (ok) closeModal();
   };
+
+  if (!customerId) {
+    return (
+      <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <h2 className="text-lg font-bold tracking-tight">Direcciones</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Guarda primero un cliente para poder agregarle direcciones.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <>

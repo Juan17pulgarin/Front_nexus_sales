@@ -1,6 +1,10 @@
 import { create } from "zustand";
-import { apiClient } from "@/lib/axios-client";
-import { getApiErrorMessage } from "@/lib/get-api-error-message";
+import {
+  createAddress,
+  deleteAddress as deleteLocalAddress,
+  getAddresses,
+  updateAddress as updateLocalAddress,
+} from "@/lib/local-crm-db";
 
 export type Address = {
   id: number;
@@ -30,25 +34,20 @@ export const useAddressesStore = create<AddressesStore>((set, get) => ({
   isLoading: false,
   isSubmitting: false,
   errorMessage: null,
-
   fetchAddresses: async (customerId) => {
     set({ isLoading: true, errorMessage: null });
-    try {
-      const res = await apiClient.get(`/customers/${customerId}/addresses`);
-      set({ addresses: res.data, isLoading: false });
-    } catch (error) {
-      set({ isLoading: false, errorMessage: getApiErrorMessage(error) });
-    }
+    const addresses = getAddresses(customerId);
+    set({ addresses, isLoading: false });
   },
 
   createAddress: async (customerId, payload) => {
     set({ isSubmitting: true, errorMessage: null });
     try {
-      const res = await apiClient.post(`/customers/${customerId}/addresses`, payload);
-      set({ addresses: [...get().addresses, res.data], isSubmitting: false });
+      const record = createAddress(customerId, payload);
+      set({ addresses: [...get().addresses, record], isSubmitting: false });
       return true;
-    } catch (error) {
-      set({ isSubmitting: false, errorMessage: getApiErrorMessage(error) });
+    } catch {
+      set({ isSubmitting: false, errorMessage: "No se pudo guardar la dirección." });
       return false;
     }
   },
@@ -56,14 +55,14 @@ export const useAddressesStore = create<AddressesStore>((set, get) => ({
   updateAddress: async (customerId, id, payload) => {
     set({ isSubmitting: true, errorMessage: null });
     try {
-      const res = await apiClient.put(`/customers/${customerId}/addresses/${id}`, payload);
+      const updatedAddress = updateLocalAddress(customerId, id, payload);
       set({
-        addresses: get().addresses.map((a) => (a.id === id ? res.data : a)),
+        addresses: get().addresses.map((address) => (address.id === id ? updatedAddress : address)),
         isSubmitting: false,
       });
       return true;
-    } catch (error) {
-      set({ isSubmitting: false, errorMessage: getApiErrorMessage(error) });
+    } catch {
+      set({ isSubmitting: false, errorMessage: "No se pudo actualizar la dirección." });
       return false;
     }
   },
@@ -71,14 +70,14 @@ export const useAddressesStore = create<AddressesStore>((set, get) => ({
   deleteAddress: async (customerId, id) => {
     set({ isSubmitting: true, errorMessage: null });
     try {
-      await apiClient.delete(`/customers/${customerId}/addresses/${id}`);
+      deleteLocalAddress(customerId, id);
       set({
-        addresses: get().addresses.filter((a) => a.id !== id),
+        addresses: get().addresses.filter((address) => address.id !== id),
         isSubmitting: false,
       });
       return true;
-    } catch (error) {
-      set({ isSubmitting: false, errorMessage: getApiErrorMessage(error) });
+    } catch {
+      set({ isSubmitting: false, errorMessage: "No se pudo eliminar la dirección." });
       return false;
     }
   },

@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -12,16 +14,21 @@ const createClienteSchema = z.object({
   FirstName: z.string().trim().min(1, "FirstName es obligatorio."),
   LastName: z.string().trim().min(1, "LastName es obligatorio."),
   EmailAddress: z.string().email("Ingresa un correo valido."),
+  Phone: z.string().trim().min(1, "Phone es obligatorio."),
+  City: z.string().trim().min(1, "City es obligatorio."),
+  State: z.string().trim().min(1, "State es obligatorio."),
 });
 
 type CreateClienteFormValues = z.infer<typeof createClienteSchema>;
 
 export default function NewCustomerPage() {
+  const router = useRouter();
   const createCliente = useClientesStore((state) => state.createCliente);
   const clearMessages = useClientesStore((state) => state.clearMessages);
   const isSubmittingStore = useClientesStore((state) => state.isSubmitting);
   const successMessage = useClientesStore((state) => state.successMessage);
   const errorMessage = useClientesStore((state) => state.errorMessage);
+  const [createdCustomerId, setCreatedCustomerId] = useState<number | null>(null);
 
   const {
     register,
@@ -34,6 +41,9 @@ export default function NewCustomerPage() {
       FirstName: "",
       LastName: "",
       EmailAddress: "",
+      Phone: "",
+      City: "",
+      State: "",
     },
   });
 
@@ -44,10 +54,12 @@ export default function NewCustomerPage() {
   }, [clearMessages]);
 
   const onSubmit = async (values: CreateClienteFormValues) => {
-    const isSuccess = await createCliente(values);
+    const createdCustomer = await createCliente(values);
 
-    if (isSuccess) {
+    if (createdCustomer) {
+      setCreatedCustomerId(createdCustomer.CustomerID);
       reset();
+      router.push("/customers");
     }
   };
 
@@ -137,6 +149,65 @@ export default function NewCustomerPage() {
             ) : null}
           </div>
 
+          <div className="space-y-2">
+            <label
+              className="text-sm font-semibold text-slate-700 dark:text-slate-300"
+              htmlFor="Phone"
+            >
+              Phone
+            </label>
+            <input
+              id="Phone"
+              className="focus:border-primary focus:ring-primary/20 block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 transition-all outline-none placeholder:text-slate-400 focus:ring-2 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              placeholder="+57 300 123 4567"
+              aria-invalid={Boolean(errors.Phone)}
+              {...register("Phone")}
+            />
+            {errors.Phone ? (
+              <p className="text-xs font-medium text-red-500">{errors.Phone.message}</p>
+            ) : null}
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label
+                className="text-sm font-semibold text-slate-700 dark:text-slate-300"
+                htmlFor="City"
+              >
+                City
+              </label>
+              <input
+                id="City"
+                className="focus:border-primary focus:ring-primary/20 block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 transition-all outline-none placeholder:text-slate-400 focus:ring-2 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                placeholder="Medellín"
+                aria-invalid={Boolean(errors.City)}
+                {...register("City")}
+              />
+              {errors.City ? (
+                <p className="text-xs font-medium text-red-500">{errors.City.message}</p>
+              ) : null}
+            </div>
+
+            <div className="space-y-2">
+              <label
+                className="text-sm font-semibold text-slate-700 dark:text-slate-300"
+                htmlFor="State"
+              >
+                State
+              </label>
+              <input
+                id="State"
+                className="focus:border-primary focus:ring-primary/20 block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 transition-all outline-none placeholder:text-slate-400 focus:ring-2 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                placeholder="Antioquia"
+                aria-invalid={Boolean(errors.State)}
+                {...register("State")}
+              />
+              {errors.State ? (
+                <p className="text-xs font-medium text-red-500">{errors.State.message}</p>
+              ) : null}
+            </div>
+          </div>
+
           {errorMessage ? (
             <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 dark:bg-red-950/50 dark:text-red-300">
               {errorMessage}
@@ -157,7 +228,16 @@ export default function NewCustomerPage() {
             {isSubmitting || isSubmittingStore ? "Guardando..." : "Guardar cliente"}
           </button>
         </form>
-        <AddressesSection customerId={1} />
+
+        <div className="space-y-4">
+          {createdCustomerId ? (
+            <AddressesSection customerId={createdCustomerId} />
+          ) : (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-400">
+              Guarda primero el cliente para poder agregarle direcciones.
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
