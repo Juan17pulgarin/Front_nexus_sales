@@ -25,7 +25,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
-  const login = useAuthStore((state) => state.login);
+  const setToken = useAuthStore((state) => state.setToken);
 
   const {
     register,
@@ -45,8 +45,6 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginFormValues) => {
     setLoginSuccess(false);
     clearErrors("root");
-
-    const result = await login(values.email, values.password, Boolean(values.remember));
 
     try {
       // LLAMADA REAL AL BACKEND
@@ -73,13 +71,15 @@ export default function LoginPage() {
       }
 
       // Si llegamos aquí, el login fue exitoso
+      // Guardamos el TOKEN en el auth-store (localStorage/sessionStorage)
+      setToken(data.token, values.remember);
+      
+      // También guardamos en cookies para middleware
       const sessionDurationMs = values.remember
         ? 1000 * 60 * 60 * 24 * 7 // 7 días
         : 1000 * 60 * 60 * 12;    // 12 horas
 
       const expiresAt = Date.now() + sessionDurationMs;
-      
-      // Guardamos el TOKEN real que generó Laravel
       setAuthCookies(data.token, expiresAt);
 
       setLoginSuccess(true);

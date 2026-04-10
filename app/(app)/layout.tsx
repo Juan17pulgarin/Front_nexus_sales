@@ -48,10 +48,10 @@ export default function AppLayout({
               <span className="material-symbols-outlined">group</span>
               Customers
             </Link>
-            <a href="#" className={navItemClass(false)}>
+            <Link href="/sales" className={navItemClass(pathname === "/sales" || pathname.startsWith("/sales/"))}>
               <span className="material-symbols-outlined">receipt_long</span>
               Sales
-            </a>
+            </Link>
             <a href="#" className={navItemClass(false)}>
               <span className="material-symbols-outlined">monitoring</span>
               Reports
