@@ -5,9 +5,11 @@ import type { NextRequest } from "next/server";
 const PUBLIC_PATHS = new Set(["/login", "/register"]);
 
 export function middleware(request: NextRequest) {
-  //TODO: quitar
-  return NextResponse.next();
   const { pathname } = request.nextUrl;
+
+  if (pathname === "/logout") {
+    return NextResponse.next();
+  }
 
   const token = request.cookies.get(AUTH_TOKEN_COOKIE)?.value;
   const exp = request.cookies.get(AUTH_EXP_COOKIE)?.value;

@@ -56,6 +56,12 @@ export const useAddressesStore = create<AddressesStore>((set, get) => ({
     set({ isSubmitting: true, errorMessage: null });
     try {
       const updatedAddress = updateLocalAddress(customerId, id, payload);
+
+      if (!updatedAddress) {
+        set({ isSubmitting: false, errorMessage: "No se pudo actualizar la dirección." });
+        return false;
+      }
+
       set({
         addresses: get().addresses.map((address) => (address.id === id ? updatedAddress : address)),
         isSubmitting: false,
