@@ -17,12 +17,6 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get(AUTH_TOKEN_COOKIE)?.value;
   const authenticated = Boolean(token?.trim());
 
-  if (pathname === "/") {
-    const url = request.nextUrl.clone();
-    url.pathname = authenticated ? LOGIN_REDIRECT_PATH : "/login";
-    return NextResponse.redirect(url);
-  }
-
   if (PUBLIC_PATHS.has(pathname) && authenticated) {
     const url = request.nextUrl.clone();
     url.pathname = LOGIN_REDIRECT_PATH;

@@ -10,8 +10,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "CRM",
-  description: "CRM frontend",
+  title: "Nexus Sales",
+  description: "Nexus Sales CRM: gestión inteligente de clientes, ventas y estado operativo.",
 };
 
 export default function RootLayout({
