@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/axios-client";
+import { useAuthStore } from "@/lib/stores/auth-store";
 import {
   createLocalCustomer,
   deleteLocalCustomer,
@@ -83,6 +84,12 @@ function extractCustomers(payload: unknown): {
 }
 
 export async function getCustomers() {
+  const token = useAuthStore.getState().token;
+
+  if (!token) {
+    return getLocalCustomers();
+  }
+
   try {
     const response = await apiClient.get("/clientes");
     const extracted = extractCustomers(response.data);
@@ -98,6 +105,12 @@ export async function getCustomers() {
 }
 
 export async function createCustomer(payload: CustomerPayload) {
+  const token = useAuthStore.getState().token;
+
+  if (!token) {
+    return createLocalCustomer(payload);
+  }
+
   try {
     const response = await apiClient.post("/clientes", payload);
     const extracted = extractCustomers(response.data);
@@ -113,6 +126,12 @@ export async function createCustomer(payload: CustomerPayload) {
 }
 
 export async function updateCustomer(customerId: number, payload: CustomerPayload) {
+  const token = useAuthStore.getState().token;
+
+  if (!token) {
+    return updateLocalCustomer(customerId, payload);
+  }
+
   try {
     const response = await apiClient.put(`/clientes/${customerId}`, payload);
     const extracted = extractCustomers(response.data);
@@ -128,6 +147,13 @@ export async function updateCustomer(customerId: number, payload: CustomerPayloa
 }
 
 export async function deleteCustomer(customerId: number) {
+  const token = useAuthStore.getState().token;
+
+  if (!token) {
+    deleteLocalCustomer(customerId);
+    return true;
+  }
+
   try {
     await apiClient.delete(`/clientes/${customerId}`);
     deleteLocalCustomer(customerId);

@@ -1,5 +1,11 @@
 import { create } from "zustand";
-import { apiClient } from "@/lib/axios-client";
+import {
+  addOrder,
+  getOrderStats,
+  getOrders,
+  getTotalSales,
+  type LocalOrder,
+} from "@/lib/local-sales-db";
 
 export interface Order {
   id: number;
@@ -38,6 +44,21 @@ interface SalesStore {
   clearMessages: () => void;
 }
 
+function mapLocalOrder(order: LocalOrder): Order {
+  return {
+    id: order.OrderID,
+    user_id: order.CustomerID,
+    order_number: `ORD-${order.OrderID}`,
+    items: Array.from({ length: order.Items }, (_, index) => `Item ${index + 1}`),
+    total_amount: order.Amount,
+    status: order.Status,
+    order_date: order.OrderDate,
+    notes: null,
+    created_at: order.OrderDate,
+    updated_at: order.OrderDate,
+  };
+}
+
 export const useSalesStore = create<SalesStore>((set) => ({
   orders: [],
   isLoadingOrders: false,
@@ -56,46 +77,27 @@ export const useSalesStore = create<SalesStore>((set) => ({
   fetchOrders: async () => {
     set({ isLoadingOrders: true, ordersError: null });
     try {
-      const response = await apiClient.get("/orders", {
-        params: {
-          per_page: 50,
-          page: 1,
-        },
-      });
-      
-      let orders = response.data.data || [];
-      
-      // Ensure items is properly parsed if it's a string
-      orders = orders.map((order: Order) => ({
-        ...order,
-        items: typeof order.items === "string" ? JSON.parse(order.items) : order.items,
-      }));
-      
-      set({ orders, isLoadingOrders: false });
-      
-      // Fetch stats after orders
-      const statsResponse = await apiClient.get("/orders/stats");
-      const stats = statsResponse.data;
-      set({ 
+      const localOrders = getOrders().map(mapLocalOrder);
+      const stats = getOrderStats();
+
+      set({
+        orders: localOrders,
+        isLoadingOrders: false,
         stats,
-        totalSales: stats.totalSales || 0,
+        totalSales: getTotalSales(),
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Error al cargar órdenes";
-      set({
-        ordersError: message,
-        isLoadingOrders: false,
-      });
+      set({ ordersError: message, isLoadingOrders: false });
     }
   },
 
   fetchStats: async () => {
     try {
-      const response = await apiClient.get("/orders/stats");
-      const stats = response.data;
-      set({ 
+      const stats = getOrderStats();
+      set({
         stats,
-        totalSales: stats.totalSales || 0,
+        totalSales: getTotalSales(),
       });
     } catch (error) {
       console.error("Error fetching stats:", error);
@@ -104,19 +106,28 @@ export const useSalesStore = create<SalesStore>((set) => ({
 
   createOrder: async (orderData: Partial<Order>) => {
     try {
-      const payload = {
-        ...orderData,
-        items: typeof orderData.items === "string" ? orderData.items : JSON.stringify(orderData.items),
-      };
-      
-      const response = await apiClient.post("/orders", payload);
-      const newOrder = response.data;
-      
-      // Refresh orders and stats
-      const storeState = (useSalesStore.getState as any)();
-      await storeState.fetchOrders();
-      
-      return newOrder;
+      const localOrder = addOrder({
+        CustomerID: orderData.user_id ?? 0,
+        CustomerName: `Cliente ${orderData.user_id ?? 0}`,
+        OrderDate: orderData.order_date ?? new Date().toISOString().slice(0, 10),
+        Amount: orderData.total_amount ?? 0,
+        Status: (orderData.status as LocalOrder["Status"]) ?? "Pendiente",
+        Items: typeof orderData.items === "string"
+          ? Math.max(orderData.items.split(",").filter(Boolean).length, 1)
+          : Array.isArray(orderData.items)
+            ? Math.max(orderData.items.length, 1)
+            : 1,
+      });
+
+      const mappedOrder = mapLocalOrder(localOrder);
+
+      set((state) => ({
+        orders: [mappedOrder, ...state.orders],
+        stats: getOrderStats(),
+        totalSales: getTotalSales(),
+      }));
+
+      return mappedOrder;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Error al crear orden";
       set({ ordersError: message });
