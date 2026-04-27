@@ -1,10 +1,10 @@
 import { create } from "zustand";
 import {
   createAddress,
-  deleteAddress as deleteLocalAddress,
+  deleteAddress as deleteHybridAddress,
   getAddresses,
-  updateAddress as updateLocalAddress,
-} from "@/lib/local-crm-db";
+  updateAddress as updateHybridAddress,
+} from "@/services/address.service";
 
 export type Address = {
   id: number;
@@ -36,14 +36,18 @@ export const useAddressesStore = create<AddressesStore>((set, get) => ({
   errorMessage: null,
   fetchAddresses: async (customerId) => {
     set({ isLoading: true, errorMessage: null });
-    const addresses = getAddresses(customerId);
-    set({ addresses, isLoading: false });
+    try {
+      const addresses = await getAddresses(customerId);
+      set({ addresses, isLoading: false });
+    } catch {
+      set({ isLoading: false, errorMessage: "No se pudieron cargar las direcciones." });
+    }
   },
 
   createAddress: async (customerId, payload) => {
     set({ isSubmitting: true, errorMessage: null });
     try {
-      const record = createAddress(customerId, payload);
+      const record = await createAddress(customerId, payload);
       set({ addresses: [...get().addresses, record], isSubmitting: false });
       return true;
     } catch {
@@ -55,7 +59,7 @@ export const useAddressesStore = create<AddressesStore>((set, get) => ({
   updateAddress: async (customerId, id, payload) => {
     set({ isSubmitting: true, errorMessage: null });
     try {
-      const updatedAddress = updateLocalAddress(customerId, id, payload);
+      const updatedAddress = await updateHybridAddress(customerId, id, payload);
 
       if (!updatedAddress) {
         set({ isSubmitting: false, errorMessage: "No se pudo actualizar la dirección." });
@@ -76,7 +80,7 @@ export const useAddressesStore = create<AddressesStore>((set, get) => ({
   deleteAddress: async (customerId, id) => {
     set({ isSubmitting: true, errorMessage: null });
     try {
-      deleteLocalAddress(customerId, id);
+      await deleteHybridAddress(customerId, id);
       set({
         addresses: get().addresses.filter((address) => address.id !== id),
         isSubmitting: false,
