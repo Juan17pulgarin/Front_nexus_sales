@@ -7,6 +7,15 @@ export type LocalCustomerRecord = {
   state: string;
 };
 
+export type LocalAddressRecord = {
+  id: number;
+  customer_id: number;
+  line: string;
+  city: string;
+  state: string;
+  country: string;
+};
+
 type CreateCustomerPayload = {
   FirstName: string;
   LastName: string;
@@ -18,6 +27,7 @@ type CreateCustomerPayload = {
 type UpdateCustomerPayload = CreateCustomerPayload;
 
 const CUSTOMERS_KEY = "crm.local.customers.v1";
+const ADDRESSES_KEY = "crm.local.addresses.v1";
 
 const DEFAULT_CUSTOMERS: LocalCustomerRecord[] = [
   {
@@ -43,6 +53,33 @@ const DEFAULT_CUSTOMERS: LocalCustomerRecord[] = [
     EmailAddress: "valentina.gomez@medisalud.com",
     city: "Cali",
     state: "Valle del Cauca",
+  },
+];
+
+const DEFAULT_ADDRESSES: LocalAddressRecord[] = [
+  {
+    id: 1,
+    customer_id: 1,
+    line: "Cra. 48 #10-45",
+    city: "Medellin",
+    state: "Antioquia",
+    country: "Colombia",
+  },
+  {
+    id: 2,
+    customer_id: 2,
+    line: "Calle 93 #11-12",
+    city: "Bogota",
+    state: "Cundinamarca",
+    country: "Colombia",
+  },
+  {
+    id: 3,
+    customer_id: 3,
+    line: "Av. 6N #28-34",
+    city: "Cali",
+    state: "Valle del Cauca",
+    country: "Colombia",
   },
 ];
 
@@ -85,6 +122,17 @@ function seedCustomersIfNeeded() {
 
   writeJsonArray(CUSTOMERS_KEY, DEFAULT_CUSTOMERS);
   return DEFAULT_CUSTOMERS;
+}
+
+function seedAddressesIfNeeded() {
+  const addresses = readJsonArray<LocalAddressRecord>(ADDRESSES_KEY, []);
+
+  if (addresses.length > 0) {
+    return addresses;
+  }
+
+  writeJsonArray(ADDRESSES_KEY, DEFAULT_ADDRESSES);
+  return DEFAULT_ADDRESSES;
 }
 
 export function getCustomers() {
@@ -139,4 +187,67 @@ export function deleteCustomer(customerId: number) {
   const customers = getCustomers();
   const nextCustomers = customers.filter((customer) => customer.CustomerID !== customerId);
   writeJsonArray(CUSTOMERS_KEY, nextCustomers);
+}
+
+export function getAddresses(customerId: number) {
+  return seedAddressesIfNeeded().filter((address) => address.customer_id === customerId);
+}
+
+export function createAddress(
+  customerId: number,
+  payload: Omit<LocalAddressRecord, "id" | "customer_id">
+) {
+  const addresses = seedAddressesIfNeeded();
+  const nextId = addresses.reduce((maxId, address) => Math.max(maxId, address.id), 0) + 1;
+
+  const record: LocalAddressRecord = {
+    id: nextId,
+    customer_id: customerId,
+    line: payload.line,
+    city: payload.city,
+    state: payload.state,
+    country: payload.country,
+  };
+
+  const nextAddresses = [...addresses, record];
+  writeJsonArray(ADDRESSES_KEY, nextAddresses);
+
+  return record;
+}
+
+export function updateAddress(
+  customerId: number,
+  id: number,
+  payload: Omit<LocalAddressRecord, "id" | "customer_id">
+) {
+  const addresses = seedAddressesIfNeeded();
+  const targetAddress = addresses.find(
+    (address) => address.customer_id === customerId && address.id === id
+  );
+
+  if (!targetAddress) {
+    return null;
+  }
+
+  const updatedAddress: LocalAddressRecord = {
+    ...targetAddress,
+    line: payload.line,
+    city: payload.city,
+    state: payload.state,
+    country: payload.country,
+  };
+
+  const nextAddresses = addresses.map((address) => (address.id === id ? updatedAddress : address));
+  writeJsonArray(ADDRESSES_KEY, nextAddresses);
+
+  return updatedAddress;
+}
+
+export function deleteAddress(customerId: number, id: number) {
+  const addresses = seedAddressesIfNeeded();
+  const nextAddresses = addresses.filter(
+    (address) => !(address.customer_id === customerId && address.id === id)
+  );
+
+  writeJsonArray(ADDRESSES_KEY, nextAddresses);
 }

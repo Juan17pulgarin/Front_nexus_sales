@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { setAuthCookies } from "@/lib/auth/mock-client"; // Mantenemos esta para guardar la sesión
 import { LOGIN_REDIRECT_PATH } from "@/lib/auth/shared";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -17,15 +16,12 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-// Actualizamos los datos de la demo visual para que coincidan con tu SQL
-const HARD_CODED_EMAIL = "admin@nexus.com";
-const HARD_CODED_PASSWORD = "password123";
-
 export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
-  const setToken = useAuthStore((state) => state.setToken);
+  const login = useAuthStore((state) => state.login);
+  const authError = useAuthStore((state) => state.error);
 
   const {
     register,
@@ -46,55 +42,17 @@ export default function LoginPage() {
     setLoginSuccess(false);
     clearErrors("root");
 
-    try {
-      // LLAMADA REAL AL BACKEND
-      const response = await fetch("http://127.0.0.1:8000/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-        body: JSON.stringify({
-          email: values.email,
-          password: values.password,
-        }),
-      });
+    const result = await login(values.email, values.password, values.remember ?? false);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        // Si el backend responde con error (401), mostramos el mensaje del servidor
-        setError("root", {
-          message: data.message || "Usuario o contraseña inválidos",
-        });
-        return;
-      }
-
-      // Si llegamos aquí, el login fue exitoso
-      // Guardamos el TOKEN en el auth-store (localStorage/sessionStorage)
-      setToken(data.token, values.remember);
-      
-      // También guardamos en cookies para middleware
-      const sessionDurationMs = values.remember
-        ? 1000 * 60 * 60 * 24 * 7 // 7 días
-        : 1000 * 60 * 60 * 12;    // 12 horas
-
-      const expiresAt = Date.now() + sessionDurationMs;
-      setAuthCookies(data.token, expiresAt);
-
-      setLoginSuccess(true);
-      
-      // Redirigimos al dashboard
-      setTimeout(() => {
-        router.push(LOGIN_REDIRECT_PATH);
-      }, 1000);
-
-    } catch (error) {
-      // Si el backend está apagado o hay error de red
+    if (!result.success) {
       setError("root", {
-        message: "Error de conexión: Asegúrate de que el Backend esté encendido.",
+        message: result.message || authError || "Usuario o contraseña inválidos",
       });
+      return;
     }
+
+    setLoginSuccess(true);
+    router.push(LOGIN_REDIRECT_PATH);
   };
 
   return (

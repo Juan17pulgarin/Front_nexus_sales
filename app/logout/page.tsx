@@ -1,16 +1,17 @@
 "use client";
 
-import { clearAuthCookies } from "@/lib/auth/mock-client";
+import { useAuthStore } from "@/lib/stores/auth-store";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function LogoutPage() {
   const router = useRouter();
+  const logout = useAuthStore((state) => state.logout);
 
   useEffect(() => {
-    clearAuthCookies();
+    logout();
     router.replace("/login");
-  }, [router]);
+  }, [logout, router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background-light font-display text-slate-900 dark:bg-background-dark dark:text-slate-100">
