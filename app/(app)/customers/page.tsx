@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useClientesStore } from '@/lib/stores/clientes-store';
+import { getCustomerOrders, type CustomerOrder } from '@/services/sales.service';
 
 type EditFormState = {
   FirstName: string;
@@ -43,6 +44,9 @@ export default function CustomersPage() {
   const [cityInput, setCityInput] = useState(searchFilters.city);
   const [stateInput, setStateInput] = useState(searchFilters.state);
   const [editingCustomerId, setEditingCustomerId] = useState<number | null>(null);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
+  const [customerOrders, setCustomerOrders] = useState<CustomerOrder[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   const [editForm, setEditForm] = useState<EditFormState>({
     FirstName: '',
     LastName: '',
@@ -94,6 +98,10 @@ export default function CustomersPage() {
     });
   };
 
+  const openHistory = (customerId: number) => {
+    setSelectedCustomerId(customerId);
+  };
+
   const closeEdit = () => {
     setEditingCustomerId(null);
   };
@@ -119,6 +127,43 @@ export default function CustomersPage() {
 
     await deleteCliente(customerId);
   };
+
+  useEffect(() => {
+    if (!selectedCustomerId) {
+      setCustomerOrders([]);
+      setOrdersLoading(false);
+      return;
+    }
+
+    let isActive = true;
+
+    const loadOrders = async () => {
+      setOrdersLoading(true);
+
+      const orders = await getCustomerOrders(selectedCustomerId);
+
+      if (!isActive) {
+        return;
+      }
+
+      setCustomerOrders(orders);
+      setOrdersLoading(false);
+    };
+
+    void loadOrders();
+
+    return () => {
+      isActive = false;
+    };
+  }, [selectedCustomerId]);
+
+  const selectedCustomer = useMemo(() => {
+    return clientes.find((customer) => customer.CustomerID === selectedCustomerId) ?? null;
+  }, [clientes, selectedCustomerId]);
+
+  const totalAccumulated = useMemo(() => {
+    return customerOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
+  }, [customerOrders]);
 
   return (
     <div className="space-y-8 p-8">
@@ -223,7 +268,13 @@ export default function CustomersPage() {
                 </tr>
               ) : (
                 filteredClientes.map((customer) => (
-                  <tr key={customer.CustomerID} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30">
+                  <tr
+                    key={customer.CustomerID}
+                    className={`cursor-pointer hover:bg-slate-50/60 dark:hover:bg-slate-800/30 ${
+                      selectedCustomerId === customer.CustomerID ? 'bg-blue-50/70 dark:bg-blue-950/20' : ''
+                    }`}
+                    onClick={() => openHistory(customer.CustomerID)}
+                  >
                     <td className="px-4 py-4 text-sm font-medium text-slate-900 dark:text-slate-100">
                       {customer.FirstName} {customer.LastName}
                     </td>
@@ -241,6 +292,7 @@ export default function CustomersPage() {
                         <button
                           type="button"
                           onClick={() => openEdit(customer)}
+                          onClickCapture={(event) => event.stopPropagation()}
                           className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                         >
                           Editar
@@ -248,6 +300,7 @@ export default function CustomersPage() {
                         <button
                           type="button"
                           onClick={() => handleDelete(customer.CustomerID)}
+                          onClickCapture={(event) => event.stopPropagation()}
                           className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 dark:border-red-900/40 dark:text-red-300 dark:hover:bg-red-950/40"
                         >
                           Eliminar
@@ -347,6 +400,93 @@ export default function CustomersPage() {
           </div>
         </div>
       ) : null}
+
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="border-b border-slate-100 px-6 py-4 dark:border-slate-800">
+          <h3 className="text-lg font-bold">Historial de ventas por cliente</h3>
+          <p className="mt-1 text-sm text-slate-500">
+            {selectedCustomer
+              ? `Pedidos asociados a ${selectedCustomer.FirstName} ${selectedCustomer.LastName}.`
+              : 'Selecciona un cliente para ver su historial.'}
+          </p>
+        </div>
+
+        {selectedCustomer ? (
+          <div className="space-y-4 p-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total acumulado</p>
+                <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">
+                  {new Intl.NumberFormat('es-CO', {
+                    style: 'currency',
+                    currency: 'COP',
+                    minimumFractionDigits: 0,
+                  }).format(totalAccumulated)}
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Órdenes</p>
+                <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">{customerOrders.length}</p>
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
+                  <thead className="bg-slate-50 dark:bg-slate-800/40">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Orden</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Fecha</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Monto</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {ordersLoading ? (
+                      <tr>
+                        <td className="px-4 py-5 text-sm text-slate-500" colSpan={4}>
+                          Cargando historial...
+                        </td>
+                      </tr>
+                    ) : customerOrders.length === 0 ? (
+                      <tr>
+                        <td className="px-4 py-5 text-sm text-slate-500" colSpan={4}>
+                          No hay historial de ventas para este cliente.
+                        </td>
+                      </tr>
+                    ) : (
+                      customerOrders.map((order) => (
+                        <tr key={order.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30">
+                          <td className="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                            {order.order_number}
+                          </td>
+                          <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                            {order.order_date ? new Date(order.order_date).toLocaleDateString('es-CO') : '-'}
+                          </td>
+                          <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                            {new Intl.NumberFormat('es-CO', {
+                              style: 'currency',
+                              currency: 'COP',
+                              minimumFractionDigits: 0,
+                            }).format(order.total_amount || 0)}
+                          </td>
+                          <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                            {order.status || 'Pendiente'}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="p-6 text-sm text-slate-500">
+            Selecciona un cliente desde la tabla para ver su historial de ventas.
+          </div>
+        )}
+      </div>
     </div>
   );
 }

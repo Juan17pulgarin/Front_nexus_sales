@@ -1,11 +1,11 @@
 import { create } from "zustand";
+import { type LocalCustomerRecord } from "@/lib/local-crm-db";
 import {
   createCustomer,
   deleteCustomer,
   getCustomers,
   updateCustomer,
-  type LocalCustomerRecord,
-} from "@/lib/local-crm-db";
+} from "@/services/customer.service";
 
 type CreateClientePayload = {
   FirstName: string;
@@ -38,7 +38,7 @@ type ClientesStore = {
 };
 
 export const useClientesStore = create<ClientesStore>((set) => ({
-  clientes: getCustomers(),
+  clientes: [],
   isLoadingClientes: false,
   clientesError: null,
   searchFilters: {
@@ -53,8 +53,10 @@ export const useClientesStore = create<ClientesStore>((set) => ({
     set({ isLoadingClientes: true, clientesError: null });
 
     try {
+      const clientes = await getCustomers();
+
       set({
-        clientes: getCustomers(),
+        clientes,
         isLoadingClientes: false,
         clientesError: null,
       });
@@ -70,7 +72,7 @@ export const useClientesStore = create<ClientesStore>((set) => ({
     set({ isSubmitting: true, successMessage: null, errorMessage: null });
 
     try {
-      const customer = createCustomer(payload);
+      const customer = await createCustomer(payload);
 
       set((state) => ({
         clientes: [...state.clientes, customer],
@@ -96,7 +98,7 @@ export const useClientesStore = create<ClientesStore>((set) => ({
     set({ isSubmitting: true, successMessage: null, errorMessage: null });
 
     try {
-      const updated = updateCustomer(customerId, payload);
+      const updated = await updateCustomer(customerId, payload);
 
       if (!updated) {
         set({
@@ -133,7 +135,7 @@ export const useClientesStore = create<ClientesStore>((set) => ({
     set({ isSubmitting: true, successMessage: null, errorMessage: null });
 
     try {
-      deleteCustomer(customerId);
+      await deleteCustomer(customerId);
       set((state) => ({
         clientes: state.clientes.filter((customer) => customer.CustomerID !== customerId),
       }));

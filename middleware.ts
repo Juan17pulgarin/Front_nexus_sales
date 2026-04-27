@@ -1,19 +1,21 @@
-import { AUTH_EXP_COOKIE, AUTH_TOKEN_COOKIE, isValidSession, LOGIN_REDIRECT_PATH } from "@/lib/auth/shared";
+import { AUTH_TOKEN_COOKIE, LOGIN_REDIRECT_PATH } from "@/lib/auth/shared";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_PATHS = new Set(["/login", "/register"]);
+const PUBLIC_PATHS = new Set(["/login", "/register", "/logout"]);
+const PROTECTED_PATHS = ["/home", "/customers", "/sales", "/reports", "/settings"];
+
+function isProtectedPath(pathname: string) {
+  return PROTECTED_PATHS.some(
+    (protectedPath) => pathname === protectedPath || pathname.startsWith(`${protectedPath}/`)
+  );
+}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname === "/logout") {
-    return NextResponse.next();
-  }
-
   const token = request.cookies.get(AUTH_TOKEN_COOKIE)?.value;
-  const exp = request.cookies.get(AUTH_EXP_COOKIE)?.value;
-  const authenticated = isValidSession(token, exp);
+  const authenticated = Boolean(token?.trim());
 
   if (pathname === "/") {
     const url = request.nextUrl.clone();
@@ -27,7 +29,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (!PUBLIC_PATHS.has(pathname) && !authenticated) {
+  if (isProtectedPath(pathname) && !authenticated) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

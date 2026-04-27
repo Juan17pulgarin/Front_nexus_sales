@@ -135,12 +135,12 @@ function seedAddressesIfNeeded() {
   return DEFAULT_ADDRESSES;
 }
 
-export function getCustomers() {
+export function getLocalCustomers() {
   return seedCustomersIfNeeded();
 }
 
-export function createCustomer(payload: CreateCustomerPayload) {
-  const customers = getCustomers();
+export function createLocalCustomer(payload: CreateCustomerPayload) {
+  const customers = getLocalCustomers();
   const nextId = customers.reduce((maxId, customer) => Math.max(maxId, customer.CustomerID), 0) + 1;
 
   const customer: LocalCustomerRecord = {
@@ -158,8 +158,8 @@ export function createCustomer(payload: CreateCustomerPayload) {
   return customer;
 }
 
-export function updateCustomer(customerId: number, payload: UpdateCustomerPayload) {
-  const customers = getCustomers();
+export function updateLocalCustomer(customerId: number, payload: UpdateCustomerPayload) {
+  const customers = getLocalCustomers();
   const targetCustomer = customers.find((customer) => customer.CustomerID === customerId);
 
   if (!targetCustomer) {
@@ -183,17 +183,33 @@ export function updateCustomer(customerId: number, payload: UpdateCustomerPayloa
   return updatedCustomer;
 }
 
-export function deleteCustomer(customerId: number) {
-  const customers = getCustomers();
+export function deleteLocalCustomer(customerId: number) {
+  const customers = getLocalCustomers();
   const nextCustomers = customers.filter((customer) => customer.CustomerID !== customerId);
   writeJsonArray(CUSTOMERS_KEY, nextCustomers);
 }
 
-export function getAddresses(customerId: number) {
+export function getCustomers() {
+  return getLocalCustomers();
+}
+
+export function createCustomer(payload: CreateCustomerPayload) {
+  return createLocalCustomer(payload);
+}
+
+export function updateCustomer(customerId: number, payload: UpdateCustomerPayload) {
+  return updateLocalCustomer(customerId, payload);
+}
+
+export function deleteCustomer(customerId: number) {
+  return deleteLocalCustomer(customerId);
+}
+
+export function getLocalAddresses(customerId: number) {
   return seedAddressesIfNeeded().filter((address) => address.customer_id === customerId);
 }
 
-export function createAddress(
+export function createLocalAddress(
   customerId: number,
   payload: Omit<LocalAddressRecord, "id" | "customer_id">
 ) {
@@ -215,7 +231,7 @@ export function createAddress(
   return record;
 }
 
-export function updateAddress(
+export function updateLocalAddress(
   customerId: number,
   id: number,
   payload: Omit<LocalAddressRecord, "id" | "customer_id">
@@ -243,11 +259,34 @@ export function updateAddress(
   return updatedAddress;
 }
 
-export function deleteAddress(customerId: number, id: number) {
+export function deleteLocalAddress(customerId: number, id: number) {
   const addresses = seedAddressesIfNeeded();
   const nextAddresses = addresses.filter(
-    (address) => !(address.customer_id === customerId && address.id === id)
+    (address) => address.customer_id !== customerId || address.id !== id
   );
 
   writeJsonArray(ADDRESSES_KEY, nextAddresses);
+}
+
+export function getAddresses(customerId: number) {
+  return getLocalAddresses(customerId);
+}
+
+export function createAddress(
+  customerId: number,
+  payload: Omit<LocalAddressRecord, "id" | "customer_id">
+) {
+  return createLocalAddress(customerId, payload);
+}
+
+export function updateAddress(
+  customerId: number,
+  id: number,
+  payload: Omit<LocalAddressRecord, "id" | "customer_id">
+) {
+  return updateLocalAddress(customerId, id, payload);
+}
+
+export function deleteAddress(customerId: number, id: number) {
+  return deleteLocalAddress(customerId, id);
 }
