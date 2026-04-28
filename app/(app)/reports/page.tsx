@@ -41,97 +41,7 @@ const customerGrowthData = [
 
 export default function ReportsPage() {
   return (
-    <div className="bg-background-light font-display min-h-screen text-slate-900 dark:bg-background-dark dark:text-slate-100">
-      <div className="flex h-screen overflow-hidden">
-        <aside className="h-full w-64 shrink-0 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 flex">
-          <div className="flex items-center gap-3 p-6">
-            <div className="flex items-center justify-center rounded-lg bg-primary p-1.5">
-              <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                <path d="M6 6H42L36 24L42 42H6L12 24L6 6Z" fill="currentColor" />
-              </svg>
-            </div>
-            <div>
-              <h1 className="text-lg font-bold leading-none tracking-tight">Nexus Sales</h1>
-              <p className="text-xs font-medium text-slate-500">CRM Dashboard</p>
-            </div>
-          </div>
-          <nav className="flex-1 space-y-1 px-3">
-            <a
-              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 transition-colors hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800"
-              href="/home"
-            >
-              <span className="material-symbols-outlined">dashboard</span>
-              <span className="text-sm font-semibold">Dashboard</span>
-            </a>
-            <a
-              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 transition-colors hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800"
-              href="/customers"
-            >
-              <span className="material-symbols-outlined">group</span>
-              <span className="text-sm font-semibold">Customers</span>
-            </a>
-            <a
-              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 transition-colors hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800"
-              href="/sales"
-            >
-              <span className="material-symbols-outlined">receipt_long</span>
-              <span className="text-sm font-semibold">Sales</span>
-            </a>
-            <a className="active-nav flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors" href="/reports">
-              <span className="material-symbols-outlined">monitoring</span>
-              <span className="text-sm font-semibold">Reports</span>
-            </a>
-            <a
-              className="mt-auto flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 transition-colors hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800"
-              href="/settings"
-            >
-              <span className="material-symbols-outlined">settings</span>
-              <span className="text-sm font-semibold">Settings</span>
-            </a>
-          </nav>
-          <div className="border-t border-slate-200 p-4 dark:border-slate-800">
-            <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-2 dark:bg-slate-800">
-              <div className="size-9 overflow-hidden rounded-full bg-primary/20 text-primary flex items-center justify-center">
-                <img
-                  className="h-full w-full object-cover"
-                  data-alt="User profile picture of a sales manager"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-onCrUHGfLBTg-2qQg4OQ8nNSbAWxtQbSeB69V3Z07ymD7ZKtP9IawuPTapwLQTv0klsaeUB5MmlOquyc_YM_NAEX4ZlyoBfIkW-XLM8QJe4cYExmUUwoRCQ0PerT4ou1aVeMYgqL--w-qna-tBwqOLNwIOOtxDdUqG2q1oB0sbt9gLT2edMHVCkFV-PfR4R6z56gcgDH6gF5U-LVsRYIxGBLB6StpmXStvcG2QnFprASj_yy8LcmgUN-JlmvuFtIKXacYaOxH0qX"
-                />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-bold">Alex Morgan</p>
-                <p className="truncate text-xs text-slate-500">Admin Account</p>
-              </div>
-              <span className="material-symbols-outlined text-lg text-slate-400">unfold_more</span>
-            </div>
-          </div>
-        </aside>
-
-        <main className="flex min-w-0 flex-1 flex-col overflow-y-auto">
-          <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-8 dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex max-w-xl flex-1 items-center gap-4">
-              <div className="relative w-full">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-xl text-slate-400">search</span>
-                <input
-                  className="w-full rounded-lg border-none bg-slate-50 py-2 pl-10 pr-4 text-sm outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 dark:bg-slate-800"
-                  placeholder="Search customers, orders, or documents..."
-                  type="text"
-                />
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <button className="relative flex size-10 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800">
-                <span className="material-symbols-outlined">notifications</span>
-                <span className="absolute right-2.5 top-2 size-2 rounded-full border-2 border-white bg-red-500 dark:border-slate-900" />
-              </button>
-              <button className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white hover:bg-primary/90">
-                <span className="material-symbols-outlined text-lg">add</span>
-                New Lead
-              </button>
-            </div>
-          </header>
-
-          <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 py-8 sm:px-6 lg:px-8">
             <div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
               <div>
                 <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Analytics Reports</h1>
@@ -389,9 +299,6 @@ export default function ReportsPage() {
                 </button>
               </div>
             </div>
-          </div>
-        </main>
-      </div>
     </div>
   );
 }

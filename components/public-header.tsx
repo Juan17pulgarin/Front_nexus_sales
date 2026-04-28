@@ -16,21 +16,21 @@ export function PublicHeader({ active }: PublicHeaderProps) {
       <div className="max-w-[1280px] mx-auto px-8 flex justify-between items-center h-20">
         <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Nexus Sales</div>
         <nav className="hidden md:flex items-center gap-8">
-          <a className={navLinkClass(active === "platform")} href="/#platform">
+          <Link className={navLinkClass(active === "platform")} href="/#platform">
             Platform
-          </a>
-          <a className={navLinkClass(active === "solutions")} href="/#solutions">
+          </Link>
+          <Link className={navLinkClass(active === "solutions")} href="/solutions">
             Solutions
-          </a>
+          </Link>
           <Link className={navLinkClass(active === "pricing")} href="/pricing">
             Pricing
           </Link>
-          <a className={navLinkClass(active === "about")} href="/#about">
+          <Link className={navLinkClass(active === "about")} href="/about">
             About Us
-          </a>
-          <a className={navLinkClass(active === "contact")} href="/#contact">
+          </Link>
+          <Link className={navLinkClass(active === "contact")} href="/contact">
             Contact
-          </a>
+          </Link>
         </nav>
         <div className="flex items-center gap-4">
           <Link href="/login" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-semibold text-sm transition-colors">

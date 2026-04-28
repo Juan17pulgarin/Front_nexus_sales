@@ -52,14 +52,6 @@ export default function AppLayout({
               <span className="material-symbols-outlined">receipt_long</span>
               Sales
             </Link>
-            <Link href="/health" className={navItemClass(pathname === "/health") }>
-              <span className="material-symbols-outlined">health_and_safety</span>
-              Health
-            </Link>
-            <Link href="/status" className={navItemClass(pathname === "/status") }>
-              <span className="material-symbols-outlined">dns</span>
-              Status
-            </Link>
             <Link href="/reports" className={navItemClass(pathname === "/reports") }>
               <span className="material-symbols-outlined">monitoring</span>
               Reports
