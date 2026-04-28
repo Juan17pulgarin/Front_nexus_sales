@@ -52,14 +52,14 @@ export default function AppLayout({
               <span className="material-symbols-outlined">receipt_long</span>
               Sales
             </Link>
-            <a href="#" className={navItemClass(false)}>
+            <Link href="/reports" className={navItemClass(pathname === "/reports") }>
               <span className="material-symbols-outlined">monitoring</span>
               Reports
-            </a>
-            <a href="#" className={`${navItemClass(false)} mt-auto`}>
+            </Link>
+            <Link href="/settings" className={`${navItemClass(pathname === "/settings" || pathname.startsWith("/settings/"))} mt-auto`}>
               <span className="material-symbols-outlined">settings</span>
               Settings
-            </a>
+            </Link>
           </nav>
 
           <div className="border-t border-slate-200 p-4 dark:border-slate-800">

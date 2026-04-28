@@ -58,7 +58,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-bold">Alex Morgan</p>
+                <p className="truncate text-sm font-bold">Erik Valencia</p>
                 <p className="truncate text-xs text-slate-500">Admin Account</p>
               </div>
               <span className="material-symbols-outlined text-lg text-slate-400">unfold_more</span>

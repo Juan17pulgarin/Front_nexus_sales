@@ -57,7 +57,7 @@ export function Navbar() {
             <span className="material-symbols-outlined text-lg">person</span>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold">Alex Morgan</p>
+            <p className="truncate text-sm font-bold">Erik Valencia</p>
             <p className="truncate text-xs text-slate-500">Admin Account</p>
           </div>
         </div>
