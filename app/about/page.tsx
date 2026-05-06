@@ -115,24 +115,29 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {[
               [
-                "Marcus Sterling",
+                "Erik Valencia Cardona",
                 "Chief Executive Officer",
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuDCZqk_pu_iJ3JfVuhnpiN6YQrU2asTO_GlIrav_w5klrcGKkV4aESn5LWun2L5uzvBHZY_Kbqr4JNehRdFQR6Y4WUqjjr5In67vNH-EVSQERHZAQ0BlRVQgn1lDRXjoeHIBid22pZuuXoY5haTsSRamyh74XgMK6sfD1J6Ml0cE-8-OJMqVo-wvfkcqAOViaAZFARv3XPYgB8yUtdup1u4AIfe36iETtIp-jopz4dZf7JR78cLhDeTGqJCTLrEwF0oauuLCrRQEJ-J",
+                '/ceos-pictures/erik-valencia.jpeg',
               ],
               [
-                "Dr. Elena Rodriguez",
+                "Juan Pablo Pulgarín Vera",
                 "Chief Data Scientist",
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuDzNBPOiwATDbJ5wNzPAzDP91eZbbXTioRO_KYTgYLmwFJKqExGz4VgR6-MVSnAxkO6S9K-fThKosypjmP6Fed-x7mxIN1LE9Ot0UlcAfJiyD2BKFdQz6lsah28tt65ITewWjzcOxFB4SFbI9bxBqD_EpDYNS9lUJ7uDw0WBq0aO99PPa2DJ9qu-yP0-jRa7aoGNS5QCk6efOQaxmqQuYQ3aXcgK8LYpLM96qRxjgYbP_NPOnCalhPEyUo0RO4N-R7-ud9VSpRhshxk",
+                '/ceos-pictures/juan-pulgarin.png',
               ],
               [
-                "Julian Thorne",
+                "Manuel Salvador Ortíz Dávila",
                 "VP of Engineering",
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuCNc1RQdRoxiwgrd0qouHlKtUiUt7uv9O57PtjMmU3Q6nHftxz01EtrRgaSKVjW2W_niIMBQlgqa7Fp3oEbmgk46q5DsFyIIrFZ0Y91cjYn0fAoT4W6YdHo486TRZbJBpkh85J0Sto00YM4ruv_AS8nU6jfm6yE_66XIUs6MtkPdi34vrD4RbTO9BZ61TkCNRP6Y8Fm8XUNKGPJXiQdu6Ei-6pkuKOvt0ERGJoN_cvEnJajtCo3Z4QD_qdI3wzPpbjZ9iFDrz8ZKCr9",
+                '/ceos-pictures/manuel-ortiz.png',
               ],
               [
-                "Sarah Jenkins",
+                "Jorge Rodríguez",
                 "Head of Customer Success",
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuDydxb7CTVndY97sHg2ErgOj7SuAM4xz5bFqbYHdkaxUgRRAHcu-MKlzteYuVvRlLBL7CMlFZyHYHG7W9YKnJuxPaS_8P4vWsBw7ZCzy76GYWCmX1ktidqaQyUo-oGjiwiWhm93jx8hzGFy_vK7zcQmbC4AZ9xQ0ThlRxjuiMlkR8d3kQJWqSLtlqpTVR30EDYFyRJKlDgjbOq714vrg5OwDOYqJnPAHMcxxI25Sc9dkGOMB30_ZGwbcZSCFyjfQE-k-coJZ0AvLunE",
+                '/ceos-pictures/jorge-rodriguez.png',
+              ],
+              [
+                "Juan José Medina Clavijo",
+                "Head of Customer Success",
+                '/ceos-pictures/juan-jose-medina.jpeg',
               ],
             ].map((m) => (
               <div key={m[0]} className="group">
